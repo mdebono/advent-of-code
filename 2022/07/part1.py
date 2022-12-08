@@ -11,6 +11,7 @@ class Directory:
         self.dirs = []
         self.name = name
         self.parent = parent
+        self.size = None
 
     def add_dir_file(self, dir_file):
         if isinstance(dir_file, Directory):
@@ -23,6 +24,13 @@ class Directory:
             if dir.name == name:
                 return dir
         return None
+
+    def get_size(self):
+        if self.size == None:
+            files_size = sum([file.size for file in self.files])
+            dirs_size = sum([dir.get_size() for dir in self.dirs])
+            self.size = files_size + dirs_size
+        return self.size
 
     def __str__(self):
         return 'Directory: ' + self.name + ' [' + ' '.join([dir.name for dir in self.dirs]) + '] [' + ' '.join([file.name for file in self.files]) + ']'
@@ -40,10 +48,17 @@ def get_dir_file(line, parent):
     else:
         return File(int(params[0]), params[1])
 
+def get_dirs_size_at_most(dir, max, dirs):
+    if dir.size <= max:
+        dirs.append(dir)
+    for dir in dir.dirs:
+        get_dirs_size_at_most(dir, max, dirs)
+    return dirs
+
 root = Directory('/')
 current = root
 
-f = open("2022/07/smallinput.txt")
+f = open("2022/07/input.txt")
 
 def get_dir(name):
     if name == '/':
@@ -70,3 +85,12 @@ for line in f:
         print(dir_file)
         current.add_dir_file(dir_file)
         print("current: ", current)
+
+root_size = root.get_size()
+print(root, root_size)
+
+most_dirs = get_dirs_size_at_most(root, 100000, [])
+print('\n'.join([str(dir) + ' ' + str(dir.size) for dir in most_dirs]))
+
+total_size = sum([dir.size for dir in most_dirs])
+print('total', total_size)
